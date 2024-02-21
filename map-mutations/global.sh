@@ -48,7 +48,6 @@ default_maps_skip=(
     "te_nordic_b2"
     "te_operation_b4"
     "te_radar_b1"
-    "te_redue_b8"
     "timertest6"
     "tram2"
     "ufo_homiefix"
