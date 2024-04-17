@@ -33,7 +33,7 @@ default_maps_skip=(
     "mp_ctfmultidemo"
     "mp_password2_v1"
     "mp_science"
-	"mp_sub2_b1"
+    "mp_sub2_b1"
     "oasis_b1"
     "rocket2_b4"
     "sub2_b8"
