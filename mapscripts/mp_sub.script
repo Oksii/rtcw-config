@@ -16,7 +16,8 @@ game_manager
 		wm_allied_respawntime		25
 
 		// Updated to 8 (was 12)
-		wm_set_round_timelimit	8
+		// Updated to 10, NA uses 10 minute timelimits for most maps - source
+		wm_set_round_timelimit	10
 
 		wm_number_of_objectives		3
 
