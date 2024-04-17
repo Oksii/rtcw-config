@@ -17,7 +17,7 @@ game_manager
 		wm_allied_respawntime		30
 		wm_axis_respawntime			40
 
-    // Set time limit to 10 min, apparently NA standard according to John_Mullins
+    		// Set time limit to 10 min, apparently NA standard according to John_Mullins
 		wm_set_round_timelimit		10
 
 		// Set the number of objectives for the map
