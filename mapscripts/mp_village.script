@@ -1,0 +1,300 @@
+//
+//Brush Scripting
+//Map: mp_village
+//Last edited by: Brandon
+//
+
+game_manager
+{
+	spawn
+	{
+		// Set scenario information
+
+		wm_mapdescription			"Allied forces are attempting to retrieve and escape with treasure stolen from the Axis-occupied village."
+		wm_axis_respawntime		30
+		wm_allied_respawntime		30
+
+		wm_set_round_timelimit	10
+
+		// ADDED BY BRANDON
+
+		wm_number_of_objectives		4
+
+		// Axis control all objectives at the start (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		1	0
+		wm_set_objective_status		2	0
+		wm_set_objective_status		3	0
+		wm_set_objective_status		4	-1
+		wm_objective_allied_desc	1	"Primary Objective:**Gain access to the Gold inside the Cemetary's Crypt!"
+		wm_objective_allied_desc	2	"Primary Objective:**Steal the Gold, from inside the Crypt."
+		wm_objective_allied_desc	3	"Primary Objective:**Escape with the Gold to the waiting Truck in the Village!"
+		wm_objective_allied_desc	4	"Secondary Objective:**Capture the Northwest Courtyard."
+		wm_objective_axis_desc		1	"Primary Objective:**Defend the Gold within the Cemetary's Crypt!"
+		wm_objective_axis_desc		2	"Primary Objective:**Prevent the Allies from stealing the Gold."
+		wm_objective_axis_desc		3	"Primary Objective:**Stop the Allies from escaping to the waiting Truck in the Village."
+		wm_objective_axis_desc		4	"Secondary Objective:**Hold the Northwest Courtyard."
+		wm_objective_image			1	"gfx/2d/mp_objectives/village_obj_blue.tga"
+		wm_objective_image			2	"gfx/2d/mp_objectives/village_obj_gold.tga"
+		wm_objective_image			3	"gfx/2d/mp_objectives/village_obj_truck.tga"
+		wm_objective_image			4	"gfx/2d/mp_objectives/checkpoint_obj.tga"
+		wm_overview_image			"video/mp_village.roq"
+
+		// SHORT DESCRIPTIONS
+
+		wm_objective_short_axis_desc	1	"Defend the Crypt"
+		wm_objective_short_axis_desc	2	"Defend the Gold"
+		wm_objective_short_axis_desc	3	"Return the Gold"
+		wm_objective_short_axis_desc	4	"Hold the Northwest Courtyard"
+
+		wm_objective_short_allied_desc	1	"Breach the Crypt"
+		wm_objective_short_allied_desc	2	"Grab the Gold"
+		wm_objective_short_allied_desc	3	"Return the Gold"
+		wm_objective_short_allied_desc	4	"Capture the Northwest Courtyard"
+
+		// Set Defending Team for SW Mode
+
+		wm_set_defending_team	0
+
+		// If the round timer expires, the Nazis have won, so set the current winning team
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 0
+
+		// Accum #1 will be the state of objective number one
+		accum 1 set 0
+		accum 2 set 0
+	}
+
+	trigger objective1
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		1	1
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 1 set 1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"The Allies have broken into the Crypt!"
+
+		// Call function to check if the round has been won
+		//trigger game_manager checkgame
+	}
+
+	trigger objective2
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis takes control of Objective #2
+		wm_set_objective_status		3	1
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 2 set 1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"The Allies have escaped with the Gold!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame2
+	}
+
+	trigger checkgame
+	{
+		accum 1 abort_if_not_equal 1
+
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 1
+
+		// End the round
+		wm_endround
+	}
+
+	trigger checkgame2
+	{
+		accum 2 abort_if_not_equal 1
+
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 1
+
+		wait 1500
+
+		// End the round
+		wm_endround
+	}
+
+	trigger axis_object_stolen
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied have stolen the documents (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		2	1
+	}
+
+	trigger axis_object_returned
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis have returned the documents (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		2	0
+	}
+
+	trigger obj_flagred
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis takes control of objective #4
+		wm_set_objective_status		4	0
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Axis reclaims the Northwest Courtyard!"
+	}
+
+	trigger obj_flagblue
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #4
+		wm_set_objective_status		4	1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies capture the Northwest Courtyard!"
+	}
+
+}
+
+allied_flag01
+{
+	trigger axis_capture
+	{
+		trigger game_manager obj_flagred
+	}
+
+	trigger allied_capture
+	{
+		trigger game_manager obj_flagblue
+	}
+}
+
+allied_obj01 //Crypt
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		trigger game_manager objective1
+	}
+}
+
+allied_obj02 //Truck
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		trigger game_manager objective2
+	}
+}
+
+// GARBAGE to REMOVE
+
+checkpoint01
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint02
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint03
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint04
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint05
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint01_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint02_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint03_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint04_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint05_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+cp_spawn
+{
+	spawn
+	{
+		remove
+	}
+}
+
+crypt_wall02
+{
+	spawn
+	{
+		remove
+	}
+}
+
+cp_fakewall01
+{
+	spawn
+	{
+		remove
+	}
+}

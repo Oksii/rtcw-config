@@ -1,0 +1,818 @@
+//
+//Brush Scripting
+//Map: mp_assault
+//Last edited by: Brandon
+//
+
+game_manager
+{
+	spawn
+	{
+		// Set scenario information
+
+		wm_mapdescription			"The Allied forces have taken over and secured what was once an Axis Communications Tower."
+		wm_axis_respawntime		30
+		wm_allied_respawntime		40
+
+		wm_set_round_timelimit	10
+
+		wm_number_of_objectives		4
+
+		// Set objective #1 properties
+
+		// Allies control objective #1 at the start
+		wm_set_objective_status		1	1
+		wm_objective_axis_desc		1	"Primary Objective:**Destroy the Communications Tower."
+		wm_objective_allied_desc	1	"Primary Objective:**Defend the Communications Tower."
+		wm_objective_image			1	"gfx/2d/mp_objectives/assault_obj_red2.tga"			// NERVE - MBJ
+
+		// Allies control objective #2 at the start
+		wm_set_objective_status		2	1
+		wm_objective_axis_desc		2	"Secondary Objective:**Destroy the door to the Warehouse for quick access."
+		wm_objective_allied_desc	2	"Secondary Objective:**Do not let the Axis advance."
+		wm_objective_image			2	"gfx/2d/mp_objectives/assault_door.tga"			// NERVE - MBJ
+
+		// Allies control objective #3 at the start
+		wm_set_objective_status		3	1
+		wm_objective_axis_desc		3	"Secondary Objective:**Breach the Gate Hatch. to create another passage to the Communications Tower."
+		wm_objective_allied_desc	3	"Secondary Objective:**Prevent the Axis from breaching the Gate Hatch."
+		wm_objective_image			3	"gfx/2d/mp_objectives/assault_hatch.tga"			// NERVE - MBJ
+
+		// No one controls objective #4 at the start
+		wm_set_objective_status		4	-1
+		wm_objective_axis_desc		4	"Secondary Objective:**Capture the Gate Area."
+		wm_objective_allied_desc	4	"Secondary Objective:**Hold the Gate Area."
+		wm_objective_image			4	"gfx/2d/mp_objectives/checkpoint_obj.tga"			// NERVE - MBJ
+
+		wm_overview_image			"video/mp_assault.roq"
+
+		// SHORT DESCRIPTIONS
+
+		wm_objective_short_axis_desc	1	"Destroy the Communication Tower"
+		wm_objective_short_axis_desc	2	"Destroy the Warehouse Door"
+		wm_objective_short_axis_desc	3	"Breach the Gate Hatch"
+		wm_objective_short_axis_desc	4	"Capture the Gate Area"
+
+		wm_objective_short_allied_desc	1	"Defend the Communication Tower"
+		wm_objective_short_allied_desc	2	"Defend the Warehouse Door"
+		wm_objective_short_allied_desc	3	"Defend the Gate Hatch"
+		wm_objective_short_allied_desc	4	"Hold the Gate Area"
+
+		// Set Defending Team for SW Mode
+
+		wm_set_defending_team	1
+
+		// If the round timer expires, the Nazis have won, so set the current winning team
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 1
+
+		// Accum #1 will be the state of objective number one
+		accum 1 set 0
+		accum 2 set 0
+		accum 3 set 0
+	}
+
+	trigger obj_flagred
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis takes control of objective #4
+		wm_set_objective_status		4	0
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Axis captures the Gate Area!"
+	}
+
+	trigger obj_flagblue
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #4
+		wm_set_objective_status		4	1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies reclaim the Gate Area!"
+	}
+
+	trigger objective3
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		3	0
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Axis team breached the Gate Hatch!"
+
+	}
+
+	trigger objective2
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		2	0
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Axis team breached the Warehouse Door!"
+
+	}
+
+	trigger objective1
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		1	0
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 2 set 1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Axis team destroyed the Communications Tower!"
+
+		trigger dish_obj1 destroyed
+		alertentity axis_end1
+		
+		// RTCWPro
+		//wait 1400
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame
+	}
+
+	trigger checkgame
+	{
+		accum 2 abort_if_not_equal 1
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 0
+		alertentity axis_end
+		// End the round
+		wm_endround
+
+		wait 4000
+	}
+
+	trigger alarms_on
+	{
+		accum 3 abort_if_not_equal 0
+		alertentity sirens
+		accum 3 set 1
+	}
+
+}
+
+flag_respawn_obj // RESPAWN FLAG
+{
+	trigger axis_capture
+	{
+		trigger game_manager obj_flagred
+	}
+
+	trigger allied_capture
+	{
+		trigger game_manager obj_flagblue
+	}
+}
+
+axis_obj1 //The Radar
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		trigger game_manager objective1
+	}
+}
+
+door_obj1 //Warehouse Doors used to be axis_obj2
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		trigger game_manager objective2
+		trigger game_manager alarms_on
+	}
+}
+
+gate_obj1 // Hatch in the gate area
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		trigger game_manager objective3
+	}
+}
+
+// ALARMS
+
+alarm1_trigger1
+{
+	spawn
+	{
+			accum 7 set 0
+	}
+
+	trigger alarm1_on
+	{
+			accum 7 abort_if_not_equal 1
+			trigger alarm1 off
+			accum 7 set 0
+			print "Turning off!"
+			wait 500
+			trigger alarm1_trigger2 setaccum0
+	}
+
+	trigger setaccum0
+	{
+			accum 7 set 0
+	}
+
+	trigger setaccum1
+	{
+			accum 7 set 1
+	}
+}
+
+alarm1_trigger2
+{
+	spawn
+	{
+			accum 7 set 0
+	}
+
+	trigger alarm1_off
+	{
+			accum 7 abort_if_not_equal 0
+			trigger alarm1 on
+			accum 7 set 1
+			//print "Turning on!"
+			wait 500
+			trigger alarm1_trigger1 setaccum1
+	}
+
+	trigger setaccum0
+	{
+			accum 7 set 0
+	}
+
+	trigger setaccum1
+	{
+			accum 7 set 1
+	}
+}
+
+alarm1
+{
+	spawn
+	{
+	}
+
+	trigger off
+	{
+		alertentity sirens
+	}
+
+	trigger on
+	{
+		alertentity sirens
+	}
+}
+
+alarm2_trigger1
+{
+	spawn
+	{
+			accum 7 set 0
+	}
+
+	trigger alarm2_on
+	{
+			accum 7 abort_if_not_equal 1
+			trigger alarm2 off
+			accum 7 set 0
+			//print "Turning off!"
+			wait 500
+			trigger alarm2_trigger2 setaccum0
+	}
+
+	trigger setaccum0
+	{
+			accum 7 set 0
+	}
+
+	trigger setaccum1
+	{
+			accum 7 set 1
+	}
+}
+
+alarm2_trigger2
+{
+	spawn
+	{
+			accum 7 set 0
+	}
+
+	trigger alarm2_off
+	{
+			accum 7 abort_if_not_equal 0
+			trigger alarm2 on
+			accum 7 set 1
+			//print "Turning on!"
+			wait 500
+			trigger alarm2_trigger1 setaccum1
+	}
+
+	trigger setaccum0
+	{
+			accum 7 set 0
+	}
+
+	trigger setaccum1
+	{
+			accum 7 set 1
+	}
+}
+
+alarm2
+{
+	spawn
+	{
+	}
+
+	trigger off
+	{
+		alertentity sirens2
+	}
+
+	trigger on
+	{
+		alertentity sirens2
+	}
+}
+
+// GATES
+
+big_lever1
+{
+	spawn
+	{
+		//gotomarker lever1_butpos1 1000
+	}
+
+	trigger down
+	{
+		gotomarker lever1_butpos2 16
+		trigger big_gate1 open
+	}
+
+	trigger up
+	{
+		gotomarker lever1_butpos1 16
+		trigger big_gate1 close
+	}
+}
+
+big_lever1a
+{
+	spawn
+	{
+		//gotomarker lever1a_butpos1 1000
+	}
+
+	trigger down
+	{
+		gotomarker lever1a_butpos2 16
+	}
+
+	trigger up
+	{
+		gotomarker lever1a_butpos1 16
+	}
+}
+
+big_lever2
+{
+	spawn
+	{
+		//gotomarker lever2_butpos1 1000
+	}
+
+	trigger down
+	{
+		gotomarker lever2_butpos2 16
+		trigger big_gate2 open
+	}
+
+	trigger up
+	{
+		gotomarker lever2_butpos1 16
+		trigger big_gate2 close
+	}
+}
+
+big_lever2a
+{
+	spawn
+	{
+		//gotomarker lever2a_butpos1 1000
+	}
+
+	trigger down
+	{
+		gotomarker lever2a_butpos2 16
+	}
+
+	trigger up
+	{
+		gotomarker lever2a_butpos1 16
+	}
+}
+
+big_gate1_trigger1
+{
+	spawn
+	{
+			accum 5 set 0
+	}
+
+	trigger big_lever1up
+	{
+			accum 5 abort_if_not_equal 1
+			trigger big_lever1 up
+			trigger big_lever1a up
+			accum 5 set 0
+			wait 2000
+			trigger big_gate1_trigger2 setaccum0
+	}
+
+	trigger setaccum0
+	{
+			accum 5 set 0
+	}
+
+	trigger setaccum1
+	{
+			accum 5 set 1
+	}
+}
+
+big_gate2_trigger1
+{
+	spawn
+	{
+			accum 6 set 0
+	}
+
+	trigger big_lever2up
+	{
+			accum 6 abort_if_not_equal 1
+			trigger big_lever2 up
+			trigger big_lever2a up
+			accum 6 set 0
+			wait 2000
+			trigger big_gate2_trigger2 setaccum0
+	}
+
+	trigger setaccum0
+	{
+			accum 6 set 0
+	}
+
+	trigger setaccum1
+	{
+			accum 6 set 1
+	}
+}
+
+big_gate1_trigger2
+{
+	spawn
+	{
+			accum 5 set 0
+	}
+
+	trigger big_lever1down
+	{
+			accum 5 abort_if_not_equal 0
+			trigger big_lever1 down
+			trigger big_lever1a down
+			accum 5 set 1
+			wait 2000
+			trigger big_gate1_trigger1 setaccum1
+	}
+
+	trigger setaccum0
+	{
+			accum 5 set 0
+	}
+
+	trigger setaccum1
+	{
+			accum 5 set 1
+	}
+}
+
+big_gate2_trigger2
+{
+	spawn
+	{
+			accum 6 set 0
+	}
+
+	trigger big_lever2down
+	{
+			accum 6 abort_if_not_equal 0
+			trigger big_lever2 down
+			trigger big_lever2a down
+			accum 6 set 1
+			wait 2000
+			trigger big_gate2_trigger1 setaccum1
+	}
+
+	trigger setaccum0
+	{
+			accum 6 set 0
+	}
+
+	trigger setaccum1
+	{
+			accum 6 set 1
+	}
+}
+
+big_gate1
+{
+	spawn
+	{
+	}
+
+	trigger open
+	{
+		wait 500
+		playsound sound/scenaric/assault/big_gate1.wav
+		wait 400
+		playsound sound/scenaric/assault/big_gate2.wav looping forever
+		gotomarker big_gate1_pos2 16 wait
+		stopsound
+		playsound sound/scenaric/assault/big_gate3.wav
+	}
+
+	trigger close
+	{
+		wait 500
+		playsound sound/scenaric/assault/big_gate1.wav
+		wait 400
+		playsound sound/scenaric/assault/big_gate2.wav looping forever
+		gotomarker big_gate1_pos1 16 wait
+		stopsound
+		playsound sound/scenaric/assault/big_gate3.wav
+	}
+}
+
+big_gate2
+{
+	spawn
+	{
+		wait 10
+		gotomarker big_gate2_pos2 16
+	}
+
+	trigger open
+	{
+		wait 500
+		playsound sound/scenaric/assault/big_gate1.wav
+		wait 400
+		playsound sound/scenaric/assault/big_gate2.wav looping forever
+		gotomarker big_gate2_pos1 16 wait
+		//gotomarker big_gate2_pos2 16 wait
+		stopsound
+		playsound sound/scenaric/assault/big_gate3.wav
+	}
+
+	trigger close
+	{
+		wait 500
+		playsound sound/scenaric/assault/big_gate1.wav
+		wait 400
+		playsound sound/scenaric/assault/big_gate2.wav looping forever
+		gotomarker big_gate2_pos2 16 wait
+		//gotomarker big_gate2_pos1 16 wait
+		stopsound
+		playsound sound/scenaric/assault/big_gate3.wav
+	}
+}
+
+// Hangar Lever 1/Door 1
+
+hangar_lever1
+{
+	spawn
+	{
+	}
+
+	trigger down
+	{
+		gotomarker hangar_butpos2 16
+		trigger allied_hangardoor1 open
+	}
+
+	trigger up
+	{
+		gotomarker hangar_butpos1 16
+		trigger allied_hangardoor1 close
+	}
+}
+
+allied_hangardoor1
+{
+	spawn
+	{
+	}
+
+	trigger open
+	{
+		wait 500
+		playsound sound/scenaric/assault/big_gate1.wav
+		wait 400
+		playsound sound/scenaric/assault/big_gate2.wav looping forever
+		gotomarker al_hangardoor1_pos2 16 wait
+		stopsound
+		playsound sound/scenaric/assault/big_gate3.wav
+	}
+
+	trigger close
+	{
+		wait 500
+		playsound sound/scenaric/assault/big_gate1.wav
+		wait 400
+		playsound sound/scenaric/assault/big_gate2.wav looping forever
+		gotomarker al_hangardoor1_pos1 16 wait
+		stopsound
+		playsound sound/scenaric/assault/big_gate3.wav
+	}
+}
+
+hangardoor1_trigger1
+{
+	spawn
+	{
+			accum 5 set 0
+	}
+
+	trigger hangar_lever1up
+	{
+			accum 5 abort_if_not_equal 1
+			trigger hangar_lever1 up
+			accum 5 set 0
+			wait 2000
+			trigger hangardoor1_trigger2 setaccum0
+	}
+
+	trigger setaccum0
+	{
+			accum 5 set 0
+	}
+
+	trigger setaccum1
+	{
+			accum 5 set 1
+	}
+}
+
+hangardoor1_trigger2
+{
+	spawn
+	{
+			accum 5 set 0
+	}
+
+	trigger hangar_lever1down
+	{
+			accum 5 abort_if_not_equal 0
+			trigger hangar_lever1 down
+			accum 5 set 1
+			wait 2000
+			trigger hangardoor1_trigger1 setaccum1
+	}
+
+	trigger setaccum0
+	{
+			accum 5 set 0
+	}
+
+	trigger setaccum1
+	{
+			accum 5 set 1
+	}
+}
+
+// RADAR DISH
+
+dish_obj1
+{
+	spawn
+	{
+		playsound sound/multiplayer/radar_loop02.wav looping
+		trigger dish_obj1 rotateloop
+	}
+
+	trigger rotateloop
+	{
+		faceangles 0 -90 0 3000
+		faceangles 0 -180 0 3000
+		faceangles 0 -270 0 3000
+		faceangles 0 -360 0 3000
+		trigger dish_obj1 rotateloop
+	}
+
+	trigger destroyed
+	{
+		stopsound
+		halt
+	}
+
+	death
+	{
+	}
+}
+
+// OBJ to REMOVE
+
+checkpoint1
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint2
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint3
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint4
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint1_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint2_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint3_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint4_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+ladder_piece01
+{
+	spawn
+	{
+		remove
+	}
+}
+
+
