@@ -15,7 +15,7 @@ game_manager
 		wm_allied_respawntime		20
 		wm_axis_respawntime		    40
 
-		wm_set_round_timelimit		12
+		wm_set_round_timelimit		10
 
 		// Set the number of objectives for the map
 

@@ -12,7 +12,7 @@ game_manager
 
 		wm_mapdescription			"The Allies have set up a position close to an Axis Outpost."
 
-		wm_axis_respawntime		25
+		wm_axis_respawntime		30
 		wm_allied_respawntime		30
 
 		wm_set_round_timelimit	10

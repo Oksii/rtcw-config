@@ -13,10 +13,10 @@ game_manager
 		wm_mapdescription			"Hidden away in the secret base is an Axis Submarine which must be destroyed."
 		// Updated to 30/20 (was 35/20)
 		wm_axis_respawntime		30
-		wm_allied_respawntime		20
+		wm_allied_respawntime		25
 
 		// Updated to 8 (was 12)
-		wm_set_round_timelimit	8
+		wm_set_round_timelimit	10
 
 		wm_number_of_objectives		3
 
