@@ -25,19 +25,23 @@ remove_spawnpoint() {
     # Old versions of Grep need to treat binary files as text in order to
     # output data. We do this by using -a on grep. The output must also trim
     # null bytes.
-    source="$(grep -Pzoa "${match}" "${file_name}" 2>/dev/null | tr -d '\000' || true)"
-    if [[ -n "${source}" ]]; then
-        # TODO: We match and replace "CTF" for "XXX" in the classname. I do not
-        # know if any other strings other than "CTF" appear in other maps.
-        new_classname="${classname//[(CTF)]/X}"
-        replacement="${source/$classname/$new_classname}"
+    if source="$(grep -Pzoa "${match}" "${file_name}" 2>/dev/null | tr -d '\000')"; then
+        if [[ -n "${source}" ]]; then
+            # TODO: We match and replace "CTF" for "XXX" in the classname. I do not
+            # know if any other strings other than "CTF" appear in other maps.
+            new_classname="${classname//[(CTF)]/X}"
+            replacement="${source/$classname/$new_classname}"
 
-        bbe -e \
-            "s/${source}/${replacement}/" \
-            "${file_name}" > \
-            "${file_name}.tmp"
-        mv "${file_name}.tmp" "${file_name}"
+            if bbe -e "s/${source}/${replacement}/" "${file_name}" > "${file_name}.tmp" 2>/dev/null; then
+                mv "${file_name}.tmp" "${file_name}"
+            else
+                rm -f "${file_name}.tmp" 2>/dev/null || true
+                return 1
+            fi
+        fi
     fi
+    
+    return 0
 }
 
 # We want to use this function within the mutation files, so export it.
