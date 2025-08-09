@@ -25,8 +25,8 @@ remove_spawnpoint() {
     # Old versions of Grep need to treat binary files as text in order to
     # output data. We do this by using -a on grep. The output must also trim
     # null bytes.
-    source="$(grep -Pzoa "${match}" "${file_name}" | tr -d '\000')"
-    if [[ ! -z "${source}" ]]; then
+    source="$(grep -Pzoa "${match}" "${file_name}" 2>/dev/null | tr -d '\000' || true)"
+    if [[ -n "${source}" ]]; then
         # TODO: We match and replace "CTF" for "XXX" in the classname. I do not
         # know if any other strings other than "CTF" appear in other maps.
         new_classname="${classname//[(CTF)]/X}"
