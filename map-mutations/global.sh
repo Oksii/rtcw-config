@@ -62,9 +62,13 @@ for skip_map in "${default_maps_skip[@]}"; do
     fi
 done
 
-if grep "props_flamebarrel" "${input}"; then
+if grep -q "props_flamebarrel" "${input}" 2>/dev/null; then
     bbe -e \
         's/props_flamebarrel/props_flamebar111/' \
         "${input}" > \
         "${output}"
+else
+    echo "No barrels found in ${map_name}, no changes needed"
 fi
+
+exit 0
