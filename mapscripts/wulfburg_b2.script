@@ -1,0 +1,284 @@
+//
+//Brush Scripting
+//Map: wulfburg_b2
+//Last edited by: homie
+//
+
+game_manager
+{
+	spawn
+	{
+		// Set scenario information
+
+		wm_mapdescription		"Allied must steal the Unholy Skull from inside the Wulfburg Church and escape with the Truck."
+
+		// Set the respawn times
+
+		wm_allied_respawntime		21
+		wm_axis_respawntime			30
+
+		wm_set_round_timelimit		10
+
+		// Set the number of objectives for the map
+
+		wm_number_of_objectives		4
+
+		// Axis control all objectives at the start (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		1	0
+		wm_set_objective_status		2	0
+		wm_set_objective_status		3	0
+		wm_set_objective_status		4	-1
+		
+		wm_objective_axis_desc		1	"Primary Objective:**Prevent the Altar from being destroyed."
+		wm_objective_axis_desc		2	"Primary Objective:**Prevent the Unholy Skull from being stolen."
+		wm_objective_axis_desc		3	"Primary Objective:**Stop the Allies before they escape in the Wine Cellar with the Truck."
+		wm_objective_axis_desc		4	"Secondary Objective:**Hold the Church."
+		
+		wm_objective_allied_desc	1	"Primary Objective:**Destroy the Altar."
+		wm_objective_allied_desc	2	"Primary Objective:**Steal the Unholy Skull."
+		wm_objective_allied_desc	3	"Primary Objective:**Get to the Wine Cellar and escape with the Truck."
+		wm_objective_allied_desc	4	"Secondary Objective:**Capture the Church."
+		
+		wm_overview_image				"levelshots/wulfburg.jpg"
+		wm_objective_image			1	"objectives/wulfburg/wulfburg_1.jpg"
+		wm_objective_image			2	"objectives/wulfburg/wulfburg_2.jpg"
+		wm_objective_image			3	"objectives/wulfburg/wulfburg_3.jpg"
+		wm_objective_image			4	"objectives/wulfburg/wulfburg_4.jpg"
+		
+		// SHORT DESCRIPTIONS
+
+		wm_objective_short_axis_desc	1	"Defend the Altar"
+		wm_objective_short_axis_desc	2	"Defend the Unholy Skull"
+		wm_objective_short_axis_desc	3	"Stop the Allies from Escaping"
+		wm_objective_short_axis_desc	4	"Hold the Church"
+
+		wm_objective_short_allied_desc	1	"Destroy the Altar"
+		wm_objective_short_allied_desc	2	"Steal the Unholy Skull"
+		wm_objective_short_allied_desc	3	"Escape with the Truck"
+		wm_objective_short_allied_desc	4	"Capture the Church"
+
+		// Set Defending Team for SW Mode
+
+		wm_set_defending_team	0
+
+		// If the round timer expires, the Axis have won, so set the current winning team
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 0
+
+		// Accum #1 will be the state of truck escape 
+		accum 1 set 0
+	}
+	
+	trigger altar_destroyed
+	{
+		wm_set_objective_status		1	1
+		wm_announce	"Allies have destroyed the Altar!"
+	}
+	
+	trigger church_flag_axis
+	{
+		wm_set_objective_status		4	-1
+		wm_announce	"Axis reclaims the Church!"
+	}
+
+	trigger church_flag_allies
+	{
+		wm_set_objective_status		4	1
+		wm_announce	"Allies capture the Church!"	
+	}
+
+	trigger axis_object_stolen
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied have stolen the documents (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		2	1
+	}
+
+	trigger axis_object_returned
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis have returned the documents (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		2	0
+	}
+	
+	trigger truck_escape
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		3	1
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 1 set 1
+
+		// UI pop-up to alert players
+		wm_announce	"The Allies have escaped with the Unholy Skull!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame
+	}
+
+	trigger checkgame
+	{
+		accum 1 abort_if_not_equal 1
+
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 1
+
+		// End the round
+		wm_endround
+	}
+}
+
+altar 
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		alertentity candle_lights_altar
+		trigger game_manager altar_destroyed
+		trigger lightning1 cine1
+		alertentity sound_alarm
+	}
+}
+
+church_flag
+{
+	trigger axis_capture
+	{
+		trigger game_manager church_flag_axis
+	}
+
+	trigger allied_capture
+	{
+		trigger game_manager church_flag_allies 
+	}
+}
+
+truck 
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		trigger game_manager truck_escape
+	}
+}
+
+lightning1
+{
+	spawn
+	{
+	}
+
+	trigger cine1
+	{
+		alertentity dlightning2
+		wait 50
+		alertentity slightning2
+		wait 1500
+		alertentity dlightning2
+		wait 3000
+		alertentity sthunder2
+		wait 10000
+		trigger lightning1 loop
+	}
+
+	trigger loop
+	{
+		wait 5000
+		alertentity dlightning1
+		wait 50
+		alertentity slightning1
+		wait 500
+		alertentity dlightning1
+		wait 3000
+		alertentity sthunder1
+		wait 10000
+
+		alertentity dlightning2
+		wait 50
+		alertentity slightning2
+		wait 1500
+		alertentity dlightning2
+		wait 3000
+		alertentity sthunder2
+		wait 10000
+
+		alertentity dlightning1
+		wait 50
+		alertentity slightning3
+		wait 750
+		alertentity dlightning2
+		wait 2000
+		alertentity sthunder3
+		wait 10000
+
+		alertentity dlightning2
+		wait 50
+		alertentity slightning1
+		wait 1500
+		alertentity dlightning2
+		wait 3000
+		alertentity sthunder3
+		wait 10000
+
+		alertentity dlightning1
+		wait 50
+		alertentity slightning1
+		wait 750
+		alertentity dlightning2
+		wait 50
+		alertentity slightning2
+		wait 750
+		alertentity dlightning2
+		wait 100
+		alertentity dlightning2
+		wait 50
+		alertentity slightning3
+		wait 1500
+		alertentity dlightning1
+		wait 2000
+		alertentity sthunder3
+		wait 16000
+
+		trigger lightning1 loop2
+	}
+
+	trigger loop2
+	{
+		alertentity dlightning1
+		wait 50
+		alertentity slightning1
+		wait 1500
+		alertentity dlightning1
+		wait 3000
+		alertentity sthunder3
+		wait 10000
+		
+		alertentity dlightning2
+		wait 50
+		alertentity slightning3
+		wait 750
+		alertentity dlightning2
+		wait 2000
+		alertentity sthunder3
+		wait 10000
+		trigger lightning1 loop
+	}
+
+	trigger once
+	{
+		alertentity dlightning2
+		wait 50
+		alertentity slightning2
+		wait 1500
+		alertentity dlightning2
+		wait 3000
+		alertentity sthunder2
+	}
+}
