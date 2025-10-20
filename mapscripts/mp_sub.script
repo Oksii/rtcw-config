@@ -105,14 +105,11 @@ game_manager
 		// move the submarine
 		trigger submarine allies_woo
 
-        // RTCWPro
-        //wait 1500
-
         // End the round
         wm_endround
         
         // RTCWPro
-        wait 1500
+        wait 1000
 	}
 
 	trigger obj_flagred

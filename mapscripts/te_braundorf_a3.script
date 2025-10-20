@@ -1,0 +1,1485 @@
+ //
+//Brush Scripting
+//Map: te_braundorf_a3
+//Last edited by: homie
+//
+
+game_manager
+{
+	spawn
+	{
+		wm_mapdescription "Allied Intelligence have discovered a weapon research bunker outside of the town of Braundorf. It is the Allies mission to blow up the gas and electricity control systems, causing overloads which will destroy the facility."
+
+		wm_axis_respawntime		30
+		wm_allied_respawntime	25
+
+		wm_number_of_objectives	6
+		wm_set_round_timelimit	8
+
+		wm_set_objective_status		1	0
+		wm_set_objective_status		2	0
+		wm_set_objective_status		3	0
+		wm_set_objective_status		4	-1
+		wm_set_objective_status		5	-1
+		wm_set_objective_status		6	0	
+		
+		wm_objective_axis_desc		1	"Primary Objective:**Defend the Main Gate."
+		wm_objective_axis_desc		2	"Primary Objective:**Defend the Bunker Controls."
+		wm_objective_axis_desc		3	"Secondary Objective:**Defend the Side Door."
+		wm_objective_axis_desc		4	"Secondary Objective:**Hold the Factory District."
+		wm_objective_axis_desc		5	"Secondary Objective:**Hold the Side Entrance."		
+		wm_objective_axis_desc		6	"Secondary Objective:**Keep the Side Gate closed."
+		
+		wm_objective_allied_desc	1	"Primary Objective:**Destroy the Main Gate."
+		wm_objective_allied_desc	2	"Primary Objective:**Destroy the Bunker Controls."
+		wm_objective_allied_desc	3	"Secondary Objective:**Destroy the Side Door."
+		wm_objective_allied_desc	4	"Secondary Objective:**Capture the Factory District."
+		wm_objective_allied_desc	5	"Secondary Objective:**Capture the Side Entrance."
+		wm_objective_allied_desc	6	"Secondary Objective:**Open the Side Gate."
+
+		wm_objective_image			1	"objectives/te_braundorf/te_braundorf_1.jpg"			
+		wm_objective_image			2	"objectives/te_braundorf/te_braundorf_2.jpg"	
+		wm_objective_image			3	"objectives/te_braundorf/te_braundorf_3.jpg"	
+		wm_objective_image			4	"objectives/te_braundorf/te_braundorf_4.jpg"
+		wm_objective_image			5	"objectives/te_braundorf/te_braundorf_5.jpg"	
+		wm_objective_image			6	"objectives/te_braundorf/te_braundorf_6.jpg"			
+		wm_overview_image				"levelshots/te_braundorf.jpg"
+
+		wm_objective_short_axis_desc	1	"Defend the Main Gate"
+		wm_objective_short_axis_desc	2	"Defend the Bunker Controls"
+		wm_objective_short_axis_desc	3	"Defend the Side Door"
+		wm_objective_short_axis_desc	4	"Hold the Factory District"
+		wm_objective_short_axis_desc	5	"Hold the Side Entrance"
+		wm_objective_short_axis_desc	6	"Keep the Side Gate closed"
+
+		wm_objective_short_allied_desc	1	"Destroy the Main Gate"
+		wm_objective_short_allied_desc	2	"Destroy the Bunker Controls"
+		wm_objective_short_allied_desc	3	"Destroy the Side Door"
+		wm_objective_short_allied_desc	4	"Capture the Factory District"
+		wm_objective_short_allied_desc	5	"Capture the Side Entrance"
+		wm_objective_short_allied_desc	6	"Open the Side Gate"
+
+		wm_set_defending_team	0
+
+		wm_setwinner 0
+
+		accum 1 set 0 // main_gate 
+		accum 2 set 0 // bunker_controls 
+		accum 3 set 0 // allied_spawn
+		accum 4 set 0 // factory_flag 
+		accum 5 set 0 // side_flag 
+	}
+
+	trigger main_gate_destroyed
+	{
+		wm_set_objective_status		1	1
+		wm_announce	"Allies have destroyed the Main Gate!"
+		accum 1 set 1 
+		
+		accum 4 abort_if_not_equal 1
+		trigger factory_flag kill
+	}
+	
+	trigger bunker_controls_destroyed
+	{
+		wm_set_objective_status		2	1
+		wm_announce	"Allies have destroyed the Bunker Controls!"
+		accum 2 set 1
+		trigger game_manager checkgame
+	}
+
+	trigger side_door_destroyed
+	{
+		wm_set_objective_status		3	1
+		wm_announce	"Allies have destroyed the Side Door!"
+	}
+	
+	trigger factory_flag_axis
+	{
+		wm_set_objective_status		4	0
+		wm_announce	"Axis capture the Factory District!"
+		accum 4 set 0
+		
+		accum 3 abort_if_not_equal 1
+		alertentity allied_spawn
+	}
+
+	trigger factory_flag_allies
+	{
+		wm_set_objective_status		4	1
+		wm_announce	"Allies capture the Factory District!"
+		accum 4 set 1
+		
+		alertentity allied_spawn
+		accum 3 set 1
+		
+	    wait 50		
+		accum 1 abort_if_not_equal 1
+		trigger factory_flag kill		
+	}
+	
+	trigger side_flag_axis
+	{
+		wm_set_objective_status		5	-1
+		wm_announce	"Axis reclaim the Side Entrance!"
+	}
+
+	trigger side_flag_allies
+	{
+		wm_set_objective_status		5	1
+		wm_announce	"Allies capture the Side Entrance!"
+	}
+	
+	trigger gate_close
+	{
+		wm_set_objective_status		6	0
+		wm_announce	"The Side Gate is closing!"
+	}
+	
+	trigger gate_open
+	{
+		wm_set_objective_status		6	1
+		wm_announce	"The Side Gate is opening!"
+	}
+	
+	trigger checkgame
+	{
+		accum 2 abort_if_not_equal 1
+		wm_setwinner 1
+		wait 500
+		wm_endround
+	}
+}
+
+main_gate 
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		alertentity main_gate_debris
+		alertentity main_door_debris
+		trigger game_manager main_gate_destroyed
+		trigger main_door kill
+		trigger bell ring
+		trigger bell2 ring
+	}
+}
+
+main_door 
+{
+	spawn
+	{
+	}
+
+	trigger kill 
+	{
+		remove
+	}
+}
+
+factory_flag
+{
+	spawn
+	{
+		accum 3 set 0
+	}
+	
+	trigger axis_capture
+	{
+		trigger game_manager factory_flag_axis
+	}
+
+	trigger allied_capture
+	{
+		trigger game_manager factory_flag_allies 
+	}
+	
+	trigger kill
+	{
+		remove
+	}
+}
+
+side_door
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		trigger game_manager side_door_destroyed
+	}
+}
+
+side_flag
+{
+	trigger axis_capture
+	{
+		trigger game_manager side_flag_axis
+	}
+
+	trigger allied_capture
+	{
+		trigger game_manager side_flag_allies 
+	}
+}
+
+bunker_controls
+{
+	spawn
+	{
+	}
+	
+	death
+	{
+		alertentity bunker_controls_whole
+		alertentity bunker_controls_debris
+		alertentity generator_loop
+		alertentity generator_loop2
+		
+		trigger generator_pistons1_1 stop
+		trigger generator_pistons2_1 stop
+		trigger generator_pistons3_1 stop
+		trigger generator_pistons4_1 stop
+		
+		trigger generator_pistons1_2 stop
+		trigger generator_pistons2_2 stop
+		trigger generator_pistons3_2 stop
+		trigger generator_pistons4_2 stop
+
+		trigger generator_pistons1_3 stop
+		trigger generator_pistons2_3 stop
+		trigger generator_pistons3_3 stop
+		trigger generator_pistons4_3 stop
+		
+		trigger generator_pistons1_4 stop
+		trigger generator_pistons2_4 stop
+		trigger generator_pistons3_4 stop
+		trigger generator_pistons4_4 stop
+
+		trigger generator_pistons1_5 stop
+		trigger generator_pistons2_5 stop
+		trigger generator_pistons3_5 stop
+		trigger generator_pistons4_5 stop
+		
+		trigger generator_pistons1_6 stop
+		trigger generator_pistons2_6 stop
+		trigger generator_pistons3_6 stop
+		trigger generator_pistons4_6 stop	
+
+		trigger generator_pistons1_7 stop
+		trigger generator_pistons2_7 stop
+		trigger generator_pistons3_7 stop
+		trigger generator_pistons4_7 stop
+		
+		trigger generator_pistons1_8 stop
+		trigger generator_pistons2_8 stop
+		trigger generator_pistons3_8 stop
+		trigger generator_pistons4_8 stop		
+		
+		trigger game_manager bunker_controls_destroyed
+	}
+}
+
+side_gate_lever1
+{
+	spawn
+	{
+	}
+
+	trigger down
+	{
+		gotomarker side_gate_lever1_downpos 16
+		trigger side_gate1 open
+		trigger side_gate2 open
+	}
+
+	trigger up
+	{
+		gotomarker side_gate_lever1_uppos 16
+		trigger side_gate1 close
+		trigger side_gate2 close
+	}
+}
+
+side_gate_lever2
+{
+	spawn
+	{
+	}
+
+	trigger down
+	{
+		gotomarker side_gate_lever2_downpos 16
+	}
+
+	trigger up
+	{
+		gotomarker side_gate_lever2_uppos 16
+	}
+}
+
+side_gate_trigger1
+{
+	spawn
+	{
+			accum 6 set 1
+	}
+
+	trigger side_gate_lever1up
+	{
+			accum 6 abort_if_not_equal 1
+			trigger side_gate_lever1 up
+			trigger side_gate_lever2 up
+			alertentity light_green
+			accum 6 set 0
+			wait 15000
+			alertentity light_red
+			alertentity light_green
+			trigger side_gate_trigger2 setaccum0
+	}
+
+	trigger setaccum0
+	{
+			accum 6 set 0
+	}
+
+	trigger setaccum1
+	{
+			accum 6 set 1
+	}
+}
+
+side_gate_trigger2
+{
+	spawn
+	{
+			accum 6 set 1
+	}
+
+	trigger side_gate_lever1down
+	{
+			accum 6 abort_if_not_equal 0
+			trigger side_gate_lever1 down
+			trigger side_gate_lever2 down
+			alertentity light_green
+			accum 6 set 1
+			wait 15000
+			alertentity light_red
+			alertentity light_green
+			trigger side_gate_trigger1 setaccum1
+	}
+
+	trigger setaccum0
+	{
+			accum 6 set 0
+	}
+
+	trigger setaccum1
+	{
+			accum 6 set 1
+	}
+}
+
+side_gate1
+{
+	spawn
+	{
+	}
+
+	trigger open
+	{
+		trigger game_manager gate_close
+		alertentity light_yellow
+		wait 500
+		playsound sound/scenaric/assault/big_gate1.wav
+		wait 400
+		playsound sound/scenaric/assault/big_gate2.wav looping forever
+		gotomarker side_gate_pos1_1 32 wait
+		stopsound
+		alertentity light_yellow
+		alertentity light_red
+		playsound sound/scenaric/assault/big_gate3.wav
+	}
+
+	trigger close
+	{
+		trigger game_manager gate_open
+		alertentity light_yellow
+		wait 500
+		playsound sound/scenaric/assault/big_gate1.wav
+		wait 400
+		playsound sound/scenaric/assault/big_gate2.wav looping forever
+		gotomarker side_gate_pos1_2 32 wait
+		stopsound
+		alertentity light_yellow
+		alertentity light_red
+		playsound sound/scenaric/assault/big_gate3.wav
+	}
+}
+
+side_gate2
+{
+	spawn
+	{
+	}
+
+	trigger open
+	{
+		wait 900
+		gotomarker side_gate_pos2_1 32 wait
+	}
+
+	trigger close
+	{
+		wait 900
+		gotomarker side_gate_pos2_2 32 wait
+	}
+}
+
+loper1
+{
+	spawn
+	{
+		wait 320
+		playanim 91 102 looping forever rate 15 //walking
+		accum 0 set 1
+		wait 180
+		trigger loper1 run
+	}
+
+	trigger run
+	{
+		trigger loper1 run1_if
+		trigger loper1 run2_if
+		trigger loper1 run3_if
+		trigger loper1 run4_if
+	}
+
+	trigger run1_if
+	{
+		accum 0 abort_if_not_equal 1
+		trigger loper1 run1
+	}
+	
+	trigger run2_if
+	{
+		accum 0 abort_if_not_equal 2
+		trigger loper1 run2
+	}
+	
+	trigger run3_if
+	{
+		accum 0 abort_if_not_equal 3
+		trigger loper1 run3
+	}
+	
+	trigger run4_if
+	{
+		accum 0 abort_if_not_equal 4
+		trigger loper1 run4
+	}
+
+	trigger run1
+	{
+		accum 0 set 2
+		gotomarker loper1_spline1 85 
+		faceangles 0 180 0 gototime
+		gotomarker loper1_spline1_ctrl 85 
+		faceangles 0 120 0 gototime
+		trigger loper1 run
+	}
+
+	trigger run2
+	{
+		accum 0 set 3
+		gotomarker loper1_spline2 85 
+		faceangles 0 90 0 gototime
+		gotomarker loper1_spline2_ctrl 85 
+		faceangles 0 30 0 gototime
+		trigger loper1 run
+	}
+
+	trigger run3
+	{
+		accum 0 set 4
+		gotomarker loper1_spline3 85  
+		faceangles 0 0 0 gototime
+		gotomarker loper1_spline3_ctrl 85 
+		faceangles 0 300 0 gototime
+		trigger loper1 run
+	}
+
+	trigger run4
+	{
+		accum 0 set 1
+		gotomarker loper1_spline4 85 
+		faceangles 0 270 0 gototime
+		gotomarker loper1_spline4_ctrl 85 
+		faceangles 0 210 0 gototime
+		trigger loper1 run
+	}
+
+	trigger attack
+	{
+		trigger loper1 attack1_if
+		trigger loper1 attack2_if
+		trigger loper1 attack3_if
+		trigger loper1 attack4_if
+	}
+
+	trigger attack1_if
+	{
+		accum 0 abort_if_not_equal 1
+		trigger loper1 attack1
+	}
+	
+	trigger attack2_if
+	{
+		accum 0 abort_if_not_equal 2
+		trigger loper1 attack2
+	}
+	
+	trigger attack3_if
+	{
+		accum 0 abort_if_not_equal 3
+		trigger loper1 attack3
+	}
+	
+	trigger attack4_if
+	{
+		accum 0 abort_if_not_equal 4
+		trigger loper1 attack4
+	}
+
+	trigger attack_routine
+	{
+		gotomarker loper1_spline5 500  
+		faceangles 0 -180 0 gototime //look at player at the window
+		playanim 206 213 rate 14 //setup before charge
+		alertentity loper1_elec2
+
+		gotomarker loper1_spline7 500 accel 
+		playanim 214 226 rate 20 //frenzy attack
+		alertentity loper1_glass
+		alertentity loper1_moan
+		
+		gotomarker loper1_spline7_ctrl 300 
+		faceangles 0 0 0 50
+		playanim 227 236 rate 20 //roll-out
+
+		accum 0 set 4
+		playanim 91 102 looping forever 15 //walking
+		trigger loper1 run
+	}
+
+	trigger attack1
+	{
+		gotomarker loper1_spline1_attack 500 wait 
+		trigger loper1 attack_routine
+	}
+
+	trigger attack2
+	{
+		gotomarker loper1_spline2_attack 500 wait 
+		trigger loper1 attack_routine
+	}
+
+	trigger attack3
+	{
+		gotomarker loper1_spline3_attack 500 wait 
+		trigger loper1 attack_routine
+	}
+
+	trigger attack4
+	{
+		gotomarker loper1_spline4_attack 500 wait 
+		trigger loper1 attack_routine
+	}
+}
+
+loper1_elec
+{
+	spawn
+	{
+		wait 413
+		attachtotag loper1 tag_spinner
+	}
+}
+
+loper1_hint
+{
+	spawn
+	{
+	}	
+	
+	trigger activate
+	{
+		alertentity loper1_scream
+		trigger loper1 attack
+	}
+}
+
+loper2
+{
+	spawn
+	{
+		wait 320
+		trigger loper2 idle
+	}
+	
+	trigger idle
+	{
+		gotomarker loper2_spline1 200 wait
+		playanim 145 165 looping forever rate 15 //idle
+	}
+}
+
+loper2_elec
+{
+	spawn
+	{
+		wait 413
+		attachtotag loper2 tag_spinner
+	}
+}
+
+bell
+{
+	trigger ring
+	{
+		accum 0 set 1
+		faceangles 18 0 0 500
+		trigger bell_ball ring
+		alertentity bell_sound
+		wait 20
+		trigger bell ring_continue
+	}
+
+	trigger ring_continue
+	{
+		accum 0 inc 1
+		faceangles -18 0 0 1000
+		alertentity bell_sound
+		wait 20 
+		faceangles 18 0 0 1000
+		alertentity bell_sound
+		wait 20
+
+		trigger bell maybe_stop
+		accum 0 abort_if_equal 7
+		trigger bell ring_continue
+	}
+
+	trigger maybe_stop
+	{
+		accum 0 abort_if_not_equal 7
+		trigger bell_ball stop
+		trigger bell stop
+	}
+
+	trigger stop
+	{
+		faceangles -15 0 0 1000
+		wait 20
+		faceangles 12 0 0 1000
+		wait 20
+		faceangles -9 0 0 1000
+		wait 20
+		faceangles 6 0 0 1000
+		wait 20
+		faceangles -3 0 0 1000
+		wait 20
+		faceangles 0 0 0 1000
+	}
+}
+
+bell_ball
+{
+	trigger ring
+	{
+		faceangles 3 0 0 1000
+		wait 20
+		trigger bell_ball ring_continue
+	}
+
+	trigger ring_continue
+	{
+		faceangles -3 0 0 1000
+		wait 20
+		faceangles 3 0 0 1000
+		wait 20
+		trigger bell_ball ring_continue
+	}
+
+	trigger stop
+	{
+		faceangles -2 0 0 1000
+		wait 20
+		faceangles 2 0 0 1000
+		wait 20
+		faceangles -1 0 0 1000
+		wait 20
+		faceangles 1 0 0 1000
+		wait 20
+		faceangles 0 0 0 1000
+	}
+}
+
+bell2
+{
+	trigger ring
+	{
+		accum 0 set 1
+		faceangles 18 0 0 500
+		trigger bell2_ball ring
+		alertentity bell2_sound
+		wait 20
+		trigger bell2 ring_continue
+	}
+
+	trigger ring_continue
+	{
+		accum 0 inc 1
+		faceangles -18 0 0 1000
+		alertentity bell2_sound
+		wait 20
+		faceangles 18 0 0 1000
+		alertentity bell2_sound
+		wait 20
+
+		trigger bell2 maybe_stop
+		accum 0 abort_if_equal 7
+		trigger bell2 ring_continue
+	}
+
+	trigger maybe_stop
+	{
+		accum 0 abort_if_not_equal 7
+		trigger bell2_ball stop
+		trigger bell2 stop
+	}
+
+	trigger stop
+	{
+		faceangles -15 0 0 1000
+		wait 20
+		faceangles 12 0 0 1000
+		wait 20
+		faceangles -9 0 0 1000
+		wait 20
+		faceangles 6 0 0 1000
+		wait 20
+		faceangles -3 0 0 1000
+		wait 20
+		faceangles 0 0 0 1000
+	}
+}
+
+bell2_ball
+{
+	trigger ring
+	{
+		faceangles 3 0 0 1000
+		wait 20
+		trigger bell2_ball ring_continue
+	}
+
+	trigger ring_continue
+	{
+		faceangles -3 0 0 1000
+		wait 20
+		faceangles 3 0 0 1000
+		wait 20
+		trigger bell2_ball ring_continue
+	}
+
+	trigger stop
+	{
+		faceangles -2 0 0 1000
+		wait 20
+		faceangles 2 0 0 1000
+		wait 20
+		faceangles -1 0 0 1000
+		wait 20
+		faceangles 1 0 0 1000
+		wait 20
+		faceangles 0 0 0 1000
+	}
+}
+
+generator_pistons1_1
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons1_1 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120
+		trigger generator_pistons1_1 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons2_1
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons2_1 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120 
+		trigger generator_pistons2_1 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons3_1
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons3_1 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons3_1 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons4_1
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons4_1 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons4_1 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons1_2
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons1_2 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120
+		trigger generator_pistons1_2 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons2_2
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons2_2 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120 
+		trigger generator_pistons2_2 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons3_2
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons3_2 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons3_2 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons4_2
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons4_2 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons4_2 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons1_3
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons1_3 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120
+		trigger generator_pistons1_3 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons2_3
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons2_3 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120 
+		trigger generator_pistons2_3 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons3_3
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons3_3 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons3_3 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons4_3
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons4_3 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons4_3 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons1_4
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons1_4 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120
+		trigger generator_pistons1_4 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons2_4
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons2_4 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120 
+		trigger generator_pistons2_4 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons3_4
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons3_4 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons3_4 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons4_4
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons4_4 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons4_4 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons1_5
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons1_5 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120
+		trigger generator_pistons1_5 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons2_5
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons2_5 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120
+		trigger generator_pistons2_5 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons3_5
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons3_5 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons3_5 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons4_5
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons4_5 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons4_5 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons1_6
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons1_6 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120
+		trigger generator_pistons1_6 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons2_6
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons2_6 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120
+		trigger generator_pistons2_6 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons3_6
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons3_6 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons3_6 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons4_6
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons4_6 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons4_6 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons1_7
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons1_7 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120 
+		trigger generator_pistons1_7 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons2_7
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons2_7 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120 
+		trigger generator_pistons2_7 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons3_7
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons3_7 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons3_7 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons4_7
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons4_7 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons4_7 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons1_8
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons1_8 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120 
+		trigger generator_pistons1_8 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons2_8
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons2_8 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 180 0 120 
+		faceangles 0 180 0 120 
+		trigger generator_pistons2_8 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons3_8
+{
+	spawn
+	{
+		wait 100
+		trigger generator_pistons3_8 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons3_8 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}
+
+generator_pistons4_8
+{
+	spawn
+	{
+		wait 200
+		trigger generator_pistons4_8 move
+	}
+	
+	trigger move
+	{
+		faceangles 20 0 0 120 
+		faceangles 0 0 0 120 
+		trigger generator_pistons4_8 move
+	}
+	
+	trigger stop
+	{
+		halt
+	}
+}

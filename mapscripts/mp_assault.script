@@ -145,7 +145,7 @@ game_manager
 		// End the round
 		wm_endround
 
-		wait 4000
+		wait 500
 	}
 
 	trigger alarms_on
